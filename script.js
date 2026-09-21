@@ -1,49 +1,248 @@
-const danger = document.getElementById("danger");
-const analyzeBtn = document.getElementById("analyzeBtn");
+let level = Number(localStorage.getItem("bananaLevel")) || 0;
+let coins = Number(localStorage.getItem("bananaCoins")) || 1000;
+let bestLevel = Number(localStorage.getItem("bananaBest")) || 0;
 
-const result = document.getElementById("result");
-const resultTitle = document.getElementById("resultTitle");
-const resultText = document.getElementById("resultText");
+const banana = document.getElementById("banana");
+const bananaName = document.getElementById("bananaName");
+const levelText = document.getElementById("level");
 
-const dangerData = {
-  kickboard: {
-    title: "⚠️ 주의",
-    text: "앞쪽에 공유 킥보드가 있을 수 있습니다. 주변을 살피며 안전하게 이동하세요.",
-    color: "#f59e0b"
+const coinsText = document.getElementById("coins");
+const bestLevelText = document.getElementById("bestLevel");
+
+const costText = document.getElementById("cost");
+const chanceText = document.getElementById("chance");
+
+const message = document.getElementById("message");
+
+const upgradeButton = document.getElementById("upgradeButton");
+const resetButton = document.getElementById("resetButton");
+
+
+/* 강화 단계 데이터 */
+
+const bananaLevels = [
+  {
+    name: "평범한 바나나",
+    emoji: "🍌",
+    chance: 100,
+    cost: 100
   },
 
-  stairs: {
-    title: "⚠️ 경고",
-    text: "계단이 있는 경로입니다. 이동에 주의하고 가능한 경우 다른 경로를 고려하세요.",
-    color: "#f97316"
+  {
+    name: "잘 익은 바나나",
+    emoji: "🍌",
+    chance: 95,
+    cost: 150
   },
 
-  broken: {
-    title: "🚨 위험",
-    text: "보행로 파손이 확인된 상황입니다. 파손 구간을 피하고 안전한 경로를 이용하세요.",
-    color: "#ef4444"
+  {
+    name: "황금빛 바나나",
+    emoji: "🍌",
+    chance: 90,
+    cost: 250
   },
 
-  normal: {
-    title: "✅ 안전",
-    text: "현재 선택된 보행로에는 등록된 위험 요소가 없습니다. 주변을 계속 확인하며 이동하세요.",
-    color: "#22c55e"
+  {
+    name: "황금 바나나",
+    emoji: "🟡",
+    chance: 80,
+    cost: 400
+  },
+
+  {
+    name: "다이아 바나나",
+    emoji: "💎",
+    chance: 70,
+    cost: 600
+  },
+
+  {
+    name: "불타는 바나나",
+    emoji: "🔥",
+    chance: 60,
+    cost: 900
+  },
+
+  {
+    name: "번개 바나나",
+    emoji: "⚡",
+    chance: 45,
+    cost: 1300
+  },
+
+  {
+    name: "신의 바나나",
+    emoji: "👑",
+    chance: 30,
+    cost: 2000
+  },
+
+  {
+    name: "초월 바나나",
+    emoji: "🌌",
+    chance: 15,
+    cost: 3500
+  },
+
+  {
+    name: "???",
+    emoji: "❓",
+    chance: 5,
+    cost: 5000
+  },
+
+  {
+    name: "BANANA GOD",
+    emoji: "🍌",
+    chance: 1,
+    cost: 10000
   }
-};
+];
 
-analyzeBtn.addEventListener("click", () => {
-  const selected = danger.value;
 
-  if (!selected) {
-    alert("위험 유형을 선택해주세요.");
+/* 화면 업데이트 */
+
+function updateScreen() {
+
+  const data = bananaLevels[Math.min(level, bananaLevels.length - 1)];
+
+  banana.textContent = data.emoji;
+
+  bananaName.textContent = data.name;
+
+  levelText.textContent = level;
+
+  coinsText.textContent = coins.toLocaleString();
+
+  bestLevelText.textContent = "+" + bestLevel;
+
+  costText.textContent = data.cost.toLocaleString();
+
+  chanceText.textContent = data.chance;
+
+  if (level >= bananaLevels.length - 1) {
+
+    message.textContent = "👑 BANANA GOD 달성!";
+
+    upgradeButton.textContent = "👑 최고 단계";
+
+    upgradeButton.disabled = true;
+
+  }
+
+}
+
+
+/* 강화 */
+
+function upgrade() {
+
+  const data = bananaLevels[level];
+
+  if (coins < data.cost) {
+
+    message.textContent = "💸 코인이 부족합니다!";
+
+    return;
+
+  }
+
+  coins -= data.cost;
+
+  const random = Math.random() * 100;
+
+  if (random < data.chance) {
+
+    level++;
+
+    if (level > bestLevel) {
+      bestLevel = level;
+    }
+
+    message.textContent =
+      "🎉 강화 성공! +" + level + " 달성!";
+
+    banana.classList.remove("fail");
+
+    banana.classList.add("success");
+
+    setTimeout(() => {
+      banana.classList.remove("success");
+    }, 500);
+
+  } else {
+
+    message.textContent =
+      "💥 강화 실패! +" + level + " 유지!";
+
+    banana.classList.remove("success");
+
+    banana.classList.add("fail");
+
+    setTimeout(() => {
+      banana.classList.remove("fail");
+    }, 400);
+
+  }
+
+  saveGame();
+
+  updateScreen();
+
+}
+
+
+/* 게임 저장 */
+
+function saveGame() {
+
+  localStorage.setItem("bananaLevel", level);
+
+  localStorage.setItem("bananaCoins", coins);
+
+  localStorage.setItem("bananaBest", bestLevel);
+
+}
+
+
+/* 게임 초기화 */
+
+function resetGame() {
+
+  const answer = confirm(
+    "정말 처음부터 다시 시작할까요?"
+  );
+
+  if (!answer) {
     return;
   }
 
-  const data = dangerData[selected];
+  level = 0;
 
-  resultTitle.textContent = data.title;
-  resultText.textContent = data.text;
+  coins = 1000;
 
-  result.style.borderLeftColor = data.color;
-  result.classList.remove("hidden");
-});
+  bestLevel = 0;
+
+  saveGame();
+
+  message.textContent = "강화를 시작해보세요!";
+
+  upgradeButton.disabled = false;
+
+  upgradeButton.textContent = "⚡ 강화하기";
+
+  updateScreen();
+
+}
+
+
+/* 이벤트 */
+
+upgradeButton.addEventListener("click", upgrade);
+
+resetButton.addEventListener("click", resetGame);
+
+
+/* 시작 */
+
+updateScreen();
